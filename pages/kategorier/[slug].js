@@ -1,14 +1,31 @@
-import { getArticles } from "../lib/api"
 import Moment from 'react-moment';
-import Link from '../components/Link'
-import Tag from '../components/Tag'
+import Link from '../../components/Link'
+import Tag from '../../components/Tag'
+import { getAllCategories, getArticlesByCategory } from "../../lib/api";
 
 const MAX_DISPLAY = 1000
 
-export async function getStaticProps() {
-  const articles = await getArticles()
+export async function getStaticPaths() {
+  const categories = await getAllCategories()
+  const paths = categories.map((category) => ({
+      params: { slug: category.attributes.slug}
+  }))
+  return { paths, fallback: false}
+}
+
+export async function getStaticProps({ params }) {
+  const data = await getArticlesByCategory(params.slug)
+  const categoryName = data[0].attributes.name
+  const articles = data[0].attributes.articles.data
   articles.sort((a,b) => dateSortDesc(a.attributes.publishedAt, b.attributes.publishedAt))
-  return { props: { articles } }
+  return { 
+    props: { 
+      articles, 
+      categoryName 
+    },
+    // - At most once every 10 seconds
+    revalidate: 10, // In seconds
+   }
 }
 
 export function dateSortDesc(a, b) {
@@ -17,16 +34,20 @@ export function dateSortDesc(a, b) {
   return 0
 }
 
-export default function Artiklar({ articles }) {
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+export default function CategoryPage({ articles, categoryName }) {
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
         <div className="pt-6 pb-8 space-y-2 md:space-y-5">
           <h1 className="text-3xl font-extrabold leading-9 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14">
-            Senaste
+            {capitalizeFirstLetter(categoryName)}
           </h1>
           <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-            Artiklar om logopedi
+            Artiklar inom {categoryName}
           </p>
         </div>
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -54,11 +75,6 @@ export default function Artiklar({ articles }) {
                               {title}
                             </Link>
                           </h2>
-                          <div className="flex flex-wrap">
-                            {categories.data.map((category) => (
-                              <Tag key={category.id} slug={category.attributes.slug} name={category.attributes.name} />
-                            ))}
-                          </div>
                         </div>
                         <div className="prose text-gray-500 max-w-none dark:text-gray-400">
                           {description}

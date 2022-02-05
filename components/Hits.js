@@ -1,8 +1,14 @@
 import Moment from "react-moment";
 import Link from "./Link";
 import Tag from "./Tag";
-
-const Hits = ({ hits }) => (
+export function dateSortDesc(a, b) {
+  if (a > b) return -1
+  if (a < b) return 1
+  return 0
+}
+const Hits = ({ hits }) => {
+  hits.sort((a, b) => dateSortDesc(a.id, b.id))
+  return (
     <ol>
         {hits.map(hit => (
         <li key={hit.id} className="py-5">
@@ -11,7 +17,7 @@ const Hits = ({ hits }) => (
                 <dl>
                   <dt className="sr-only">Published on</dt>
                   <dd className="text-base font-medium leading-6 text-gray-500 dark:text-gray-400">
-                    <Moment format="DD MMMM YYYY">{hit.createdAt}</Moment>
+                    <Moment locale="sv" format="DD MMMM YYYY">{hit.createdAt}</Moment>
                   </dd>
                 </dl>
                 <div className="space-y-5 xl:col-span-3">
@@ -28,6 +34,11 @@ const Hits = ({ hits }) => (
                       <div className="flex flex-wrap">
                         {hit.categories.map((category) => (
                           <Tag key={category} slug={category} name={category} />
+                        ))}
+                        {hit.media.map((media) => (
+                          <a key={media} href={`/artiklar/${hit.slug}`} className="mr-3 text-sm font-medium uppercase text-stone-500">
+                            {media}
+                          </a>
                         ))}
                       </div>
                     </div>
@@ -50,6 +61,6 @@ const Hits = ({ hits }) => (
           </li>
         ))}
     </ol>
-);
+)};
 
 export default Hits

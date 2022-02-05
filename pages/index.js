@@ -1,50 +1,56 @@
 import {
   InstantSearch,
-  connectHits,
+  Configure,
   connectSearchBox,
   connectRefinementList,
+  connectStateResults,
+  connectInfiniteHits,
   Stats
 } from "react-instantsearch-dom";
-import { instantMeiliSearch } from "@meilisearch/instant-meilisearch";
+import { instantMeiliSearch, Sort } from "@meilisearch/instant-meilisearch";
 import { getAllCategories } from '../lib/api'
 import SearchBox from '../components/SearchBox'
 import Hits from '../components/Hits'
-import RefinementList from "../components/RefinementList";
-const CustomSearchBox = connectSearchBox(SearchBox);
-const CustomHits = connectHits(Hits);
-const CustomRefinementList = connectRefinementList(RefinementList)
+import RefinementList from "../components/RefinementList"
+import StateResults from "../components/StateResults"
 
+const CustomSearchBox = connectSearchBox(SearchBox);
+const CustomHits = connectInfiniteHits(Hits);
+const CustomRefinementList = connectRefinementList(RefinementList)
+const CustomResults = connectStateResults(StateResults)
 const searchClient = instantMeiliSearch(
-  "http://localhost:7700"
+  process.env.NEXT_PUBLIC_MEILISEARCH_HOST_URL,
+  process.env.NEXT_PUBLIC_MEILISEARCH_API_KEY
 );
 
-export async function getStaticProps() {
-  const categories = await getAllCategories()
-  return { props: { categories } }
-}
 
 
-export default function Home({defaultRefinement}) {
+export default function Home() {
   return (
     <div className="divide-y divide-gray-200 dark:divide-gray-700">
         <InstantSearch indexName="articles" searchClient={searchClient}>
           <div className="my-24 grid place-items-center">  
 
-            
+            <Configure
+              hitsPerPage={20}
+              analytics={false}
+              enablePersonalization={true}
+              distinct
+            />
             <CustomSearchBox />
             <Stats 
               translations={{
-                stats(nbHits, processingTimeMS, nbSortedHits, areHitsSorted) {
-                  return areHitsSorted && nbHits !== nbSortedHits
-                    ? `${nbSortedHits.toLocaleString()} relevanta resultat sorterade av ${nbHits.toLocaleString()} hittade på ${processingTimeMS.toLocaleString()}ms`
-                    : `${nbHits.toLocaleString()} resultat hittade på ${processingTimeMS.toLocaleString()}ms`
+                stats(nbHits) {
+                  return `${nbHits.toLocaleString()} artiklar`
                   },
                 }}
               />
-              <CustomRefinementList attribute="categories" defaultRefinement={defaultRefinement}/>
+            <CustomRefinementList attribute="categories" defaultRefinement={[]}/>
           </div>
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            <CustomHits />
+            {/* <CustomResults> */}
+              <CustomHits />
+            {/* </CustomResults> */}
           </div>
         </InstantSearch>
     </div>
