@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import {
   InstantSearch,
   Configure,
@@ -7,8 +8,7 @@ import {
   connectInfiniteHits,
   Stats
 } from "react-instantsearch-dom";
-import { instantMeiliSearch, Sort } from "@meilisearch/instant-meilisearch";
-import { getAllCategories } from '../lib/api'
+import { instantMeiliSearch } from "@meilisearch/instant-meilisearch";
 import SearchBox from '../components/SearchBox'
 import Hits from '../components/Hits'
 import RefinementList from "../components/RefinementList"
@@ -26,11 +26,22 @@ const searchClient = instantMeiliSearch(
 
 
 export default function Home() {
+  const [keyPressed, setKeyPressed] = useState(false);
+
+  const downHandler = ({key}) => {
+    if (key) setKeyPressed(true)
+  }
+  
+  useEffect(() => {
+    window.addEventListener('keydown', downHandler);
+    return () => {
+      window.removeEventListener('keydown', downHandler);
+    };
+  }, []);
   return (
     <div className="divide-y divide-gray-200 dark:divide-gray-700">
         <InstantSearch indexName="articles" searchClient={searchClient}>
           <div className="my-24 grid place-items-center">  
-
             <Configure
               hitsPerPage={20}
               analytics={false}
@@ -48,9 +59,7 @@ export default function Home() {
             <CustomRefinementList attribute="categories" defaultRefinement={[]}/>
           </div>
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
-            {/* <CustomResults> */}
-              <CustomHits />
-            {/* </CustomResults> */}
+            {keyPressed && <CustomHits />}
           </div>
         </InstantSearch>
     </div>

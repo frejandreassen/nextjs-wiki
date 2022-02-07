@@ -116,6 +116,8 @@ export async function getStaticProps({ params }) {
     return {
         props: {
             article: article.attributes
-        }
+        },
+        // - At most once every 10 seconds
+        revalidate: 10, // In seconds
     }
 }

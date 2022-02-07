@@ -7,7 +7,7 @@ export function dateSortDesc(a, b) {
   return 0
 }
 const Hits = ({ hits }) => {
-  hits.sort((a, b) => dateSortDesc(a.id, b.id))
+  // hits.sort((a, b) => dateSortDesc(a.id, b.id))
   return (
     <ol>
         {hits.map(hit => (
